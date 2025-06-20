@@ -24,10 +24,14 @@ export const hostnamesAtom = atomWithStorage<SystemStatus[]>(
 export const filteredAtom = atom<SystemStatus[]>((get) => {
     const filter = get(filterAtom)
     const hostnames = get(hostnamesAtom)
-    if (filter === 'all') return hostnames
-    else if (filter === 'online')
-      return hostnames.filter((system) => system.ip !== '')
-    else return hostnames.filter((system) => system.ip === '')
+
+    if (filter === 'all'){
+        return hostnames
+    } else if (filter === 'online'){
+        return hostnames.filter((system) => system.ip !== '')
+    } else {
+        return hostnames.filter((system) => system.ip === '')
+    }
   })
 
 export const filterAtom = atom<FilterStates>('all')

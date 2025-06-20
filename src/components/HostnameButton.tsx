@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import classNames from 'classnames'
+import { useSetAtom } from 'jotai'
 import { Trash2Icon } from 'lucide-react'
+import { useEffect } from 'preact/hooks'
 import { toast, type ToastContentProps } from 'react-toastify'
 import { getHealth, getSystemStatus } from '../apis'
+import { hostnamesAtom } from '../state'
 
 export function HostnameButton({
     hostname,
@@ -11,6 +14,8 @@ export function HostnameButton({
     hostname: string,
     remove: () => void
 }) {
+    const setHostnames = useSetAtom(hostnamesAtom)
+
     const { data: isOnline, isLoading: isOnlineLoading, isError: isOnlineError, error: onlineError } = useQuery({
         queryKey: ['isOnline', hostname],
         queryFn: () => getHealth(hostname),
@@ -52,6 +57,11 @@ export function HostnameButton({
         )
     }
 
+    // Update the hostnamesAtom when the systemStatus changes
+    useEffect(() => {
+        setHostnames(prev => prev.map(system => system.hostname === hostname && systemStatus ? systemStatus : system))
+    }, [systemStatus])
+
   return (
     <div className='flex flex-row gap-2.5 items-center justify-between w-full h-full'>
         <button class={classNames(
@@ -68,12 +78,18 @@ export function HostnameButton({
             }
         }}>
             <div class="flex flex-row gap-2.5 items-center justify-between w-full">
-                <span class="text-white text-2xl font-bold">{hostname.toUpperCase()}</span>
+                <div className='flex flex-col items-start justify-between w-full'>
+                    <span class="text-white text-2xl font-bold">{hostname.toUpperCase()}</span>
+                    {systemStatus && systemStatus.ip && <div className='flex flex-col'>
+                        {systemStatus && systemStatus.ip && <span className='text-white text-sm flex flex-row items-start w-full'>{systemStatus.ip.substring(0, 32) + '...'}</span>}
+                        {systemStatus && systemStatus.network_watcher && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Network Watcher:&nbsp;<strong>{systemStatus.network_watcher}</strong></span>}
+                        {systemStatus && systemStatus.srt_streamer && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>SRT Streamer:&nbsp;<strong>{systemStatus.srt_streamer}</strong></span>}
+                    </div>}
+                </div>
                 {isOnlineLoading || isSystemStatusLoading && <span>Loading...</span>}
                 {isOnlineError || isSystemStatusError && <span>Error: {onlineError || systemStatusError}</span>}
-                {!isOnlineLoading && !isOnlineError && <span>{isOnline ? 'Online' : 'Offline'}</span>}
+                {!isOnlineLoading && !isOnlineError && <span class="font-bold">{isOnline ? 'Online' : 'Offline'}</span>}
             </div>
-            {systemStatus && systemStatus.ip && <span>{systemStatus.ip.split(' ').map(ip => <span key={ip}>{ip}</span>)}</span>}
         </button>
         <button className='bg-red-500 hover:bg-red-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={promptDelete}><Trash2Icon /></button>
     </div>

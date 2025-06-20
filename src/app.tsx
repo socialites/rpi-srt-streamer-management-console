@@ -90,6 +90,12 @@ const Filtered = () => {
       leave: { opacity: 0, height: 0 },
     })
 
+    if (hostnames.length === 0) {
+        return <div className='w-full h-full flex items-center justify-center'>
+            <p className='text-white text-sm font-bold'>No hostnames found</p>
+        </div>
+    }
+
     return transitions((style, system) =>
       <a.div className="w-full" style={style}>
         <HostnameButton
