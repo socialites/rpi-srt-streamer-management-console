@@ -35,3 +35,5 @@ export const filteredAtom = atom<SystemStatus[]>((get) => {
   })
 
 export const filterAtom = atom<FilterStates>('all')
+
+export const showDetailedStatsAtom = atomWithStorage<boolean>('showDetailedStats', true);

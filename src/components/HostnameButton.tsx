@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import classNames from 'classnames'
-import { useSetAtom } from 'jotai'
-import { Trash2Icon } from 'lucide-react'
-import { useEffect } from 'preact/hooks'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { ExternalLinkIcon, EyeIcon, Trash2Icon } from 'lucide-react'
+import { useCallback, useEffect } from 'preact/hooks'
 import { toast, type ToastContentProps } from 'react-toastify'
 import { getHealth, getSystemStatus } from '../apis'
 import { useNetworkStatus } from '../hooks/useNetworkStatus'
-import { hostnamesAtom } from '../state'
+import { hostnamesAtom, showDetailedStatsAtom } from '../state'
 
 export function HostnameButton({
     hostname,
@@ -17,6 +17,7 @@ export function HostnameButton({
 }) {
     const setHostnames = useSetAtom(hostnamesAtom)
     const { networkStatus, isConnected, error } = useNetworkStatus(hostname)
+    const showDetailedStats = useAtomValue(showDetailedStatsAtom)
 
     const { data: isOnline, isLoading: isOnlineLoading, isError: isOnlineError, error: onlineError } = useQuery({
         queryKey: ['isOnline', hostname],
@@ -64,29 +65,31 @@ export function HostnameButton({
         setHostnames(prev => prev.map(system => system.hostname === hostname && systemStatus ? systemStatus : system))
     }, [systemStatus])
 
+    const handleOnClick = useCallback(() => {
+        if (isOnline) {
+            window.location.href = `http://${hostname}/`
+        } else {
+            toast.error(`${hostname} is offline`)
+        }
+    }, [isOnline, hostname])
+
   return (
     <div className='flex flex-row gap-2.5 items-center justify-between w-full h-full'>
         <button class={classNames(
-            'cursor-pointer items-center justify-center p-3 rounded-md flex flex-col gap-2.5 w-full',
+            'cursor-pointer items-center justify-center p-3 rounded-md flex flex-col gap-2.5 w-full h-full',
             (isOnlineLoading || isSystemStatusLoading) && 'bg-gray-500',
             (isOnlineError || isSystemStatusError) && 'bg-red-500',
             (isOnline && !isOnlineLoading && !isOnlineLoading) ? 'bg-green-500' : 'bg-red-500'
         )}
-        onClick={() => {
-            if (isOnline) {
-                window.location.href = `http://${hostname}/`
-            } else {
-                toast.error(`${hostname} is offline`)
-            }
-        }}>
+        onClick={handleOnClick}>
             <div class="flex flex-row gap-2.5 items-center justify-between w-full">
                 <div className='flex flex-col items-start justify-between w-full'>
                     <span class="text-white text-2xl font-bold">{hostname.toUpperCase()}</span>
                     {systemStatus && systemStatus.ip && <div className='flex flex-col'>
-                        {systemStatus && systemStatus.ip && <span className='text-white text-sm flex flex-row items-start w-full'>{systemStatus.ip.substring(0, 32) + '...'}</span>}
+                        {systemStatus && systemStatus.ip && <span className='text-white text-sm flex flex-row items-start w-full whitespace-nowrap'>{systemStatus.ip.substring(0, 32) + '...'}</span>}
                         {systemStatus && systemStatus.network_watcher && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Network Watcher:&nbsp;<strong>{systemStatus.network_watcher}</strong></span>}
                         {systemStatus && systemStatus.srt_streamer && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>SRT Streamer:&nbsp;<strong>{systemStatus.srt_streamer}</strong></span>}
-                        <div className='flex flex-row items-center w-full justify-start'>
+                        {showDetailedStats && <div className='flex flex-row items-center w-full justify-start'>
                             {isConnected && networkStatus && Object.keys(networkStatus).length > 0 && Object.keys(networkStatus).map((key) => {
                                 return (
                                     <div className='flex flex-col items-start justify-between w-full'>
@@ -97,7 +100,7 @@ export function HostnameButton({
                                 )
                             })}
                             {error && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Error Fetching Bitrate Information: {error}</span>}
-                        </div>
+                        </div>}
                     </div>}
                 </div>
                 {isOnlineLoading || isSystemStatusLoading && <span>Loading...</span>}
@@ -105,7 +108,11 @@ export function HostnameButton({
                 {!isOnlineLoading && !isOnlineError && <span class="font-bold">{isOnline ? 'Online' : 'Offline'}</span>}
             </div>
         </button>
-        <button className='bg-red-500 hover:bg-red-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={promptDelete}><Trash2Icon /></button>
+        <div className='flex flex-col h-full items-center justify-center gap-2.5'>
+            {isOnline && <button className='bg-slate-500 hover:bg-slate-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={handleOnClick}><EyeIcon /></button>}
+            {isOnline && <button className='bg-violet-500 hover:bg-violet-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={handleOnClick}><ExternalLinkIcon /></button>}
+            <button className='bg-red-500 hover:bg-red-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={promptDelete}><Trash2Icon /></button>
+        </div>
     </div>
   )
 }
