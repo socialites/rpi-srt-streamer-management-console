@@ -74,9 +74,9 @@ export function HostnameButton({
     }, [isOnline, hostname])
 
   return (
-    <div className='flex flex-row gap-2.5 items-center justify-between w-full h-full'>
+    <div className="flex flex-row items-stretch gap-2.5 w-full">
         <button class={classNames(
-            'cursor-pointer items-center justify-center p-3 rounded-md flex flex-col gap-2.5 w-full h-full',
+            'cursor-pointer items-center justify-center p-3 rounded-md flex flex-col gap-2.5 w-full',
             (isOnlineLoading || isSystemStatusLoading) && 'bg-gray-500',
             (isOnlineError || isSystemStatusError) && 'bg-red-500',
             (isOnline && !isOnlineLoading && !isOnlineLoading) ? 'bg-green-500' : 'bg-red-500'
@@ -90,7 +90,7 @@ export function HostnameButton({
                         {systemStatus && systemStatus.network_watcher && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Network Watcher:&nbsp;<strong>{systemStatus.network_watcher}</strong></span>}
                         {systemStatus && systemStatus.srt_streamer && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>SRT Streamer:&nbsp;<strong>{systemStatus.srt_streamer}</strong></span>}
                         {showDetailedStats && <div className='flex flex-row items-center w-full justify-start'>
-                            {isConnected && networkStatus && Object.keys(networkStatus).length > 0 && Object.keys(networkStatus).map((key) => {
+                            {isConnected && networkStatus && Object.keys(networkStatus).length && Object.keys(networkStatus).map((key) => {
                                 return (
                                     <div className='flex flex-col items-start justify-between w-full'>
                                         <span className='text-white text-sm flex flex-row items-center w-full justify-start font-bold'>{key}</span>
@@ -108,7 +108,7 @@ export function HostnameButton({
                 {!isOnlineLoading && !isOnlineError && <span class="font-bold">{isOnline ? 'Online' : 'Offline'}</span>}
             </div>
         </button>
-        <div className='flex flex-col h-full items-center justify-center gap-2.5'>
+        <div className='flex flex-col items-center justify-center gap-2.5'>
             {isOnline && <button className='bg-slate-500 hover:bg-slate-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={handleOnClick}><EyeIcon /></button>}
             {isOnline && <button className='bg-violet-500 hover:bg-violet-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={handleOnClick}><ExternalLinkIcon /></button>}
             <button className='bg-red-500 hover:bg-red-600 cursor-pointer p-2 px-4 rounded-md h-full w-auto' onClick={promptDelete}><Trash2Icon /></button>
