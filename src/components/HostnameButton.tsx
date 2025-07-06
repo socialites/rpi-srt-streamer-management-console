@@ -5,6 +5,7 @@ import { Trash2Icon } from 'lucide-react'
 import { useEffect } from 'preact/hooks'
 import { toast, type ToastContentProps } from 'react-toastify'
 import { getHealth, getSystemStatus } from '../apis'
+import { useNetworkStatus } from '../hooks/useNetworkStatus'
 import { hostnamesAtom } from '../state'
 
 export function HostnameButton({
@@ -15,6 +16,7 @@ export function HostnameButton({
     remove: () => void
 }) {
     const setHostnames = useSetAtom(hostnamesAtom)
+    const { networkStatus, isConnected, error } = useNetworkStatus(hostname)
 
     const { data: isOnline, isLoading: isOnlineLoading, isError: isOnlineError, error: onlineError } = useQuery({
         queryKey: ['isOnline', hostname],
@@ -84,6 +86,18 @@ export function HostnameButton({
                         {systemStatus && systemStatus.ip && <span className='text-white text-sm flex flex-row items-start w-full'>{systemStatus.ip.substring(0, 32) + '...'}</span>}
                         {systemStatus && systemStatus.network_watcher && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Network Watcher:&nbsp;<strong>{systemStatus.network_watcher}</strong></span>}
                         {systemStatus && systemStatus.srt_streamer && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>SRT Streamer:&nbsp;<strong>{systemStatus.srt_streamer}</strong></span>}
+                        <div className='flex flex-row items-center w-full justify-start'>
+                            {isConnected && networkStatus && Object.keys(networkStatus).length > 0 && Object.keys(networkStatus).map((key) => {
+                                return (
+                                    <div className='flex flex-col items-start justify-between w-full'>
+                                        <span className='text-white text-sm flex flex-row items-center w-full justify-start font-bold'>{key}</span>
+                                        <span className='text-white text-sm flex flex-row items-center w-full justify-start'>In:&nbsp;<strong>{networkStatus[key].in_kbps} kbps</strong></span>
+                                        <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Out:&nbsp;<strong>{networkStatus[key].out_kbps} kbps</strong></span>
+                                    </div>
+                                )
+                            })}
+                            {error && <span className='text-white text-sm flex flex-row items-center w-full justify-start'>Error Fetching Bitrate Information: {error}</span>}
+                        </div>
                     </div>}
                 </div>
                 {isOnlineLoading || isSystemStatusLoading && <span>Loading...</span>}

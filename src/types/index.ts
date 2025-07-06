@@ -10,3 +10,8 @@ export type SystemStatus = {
 }
 
 export type RemoveFn = (item: PrimitiveAtom<SystemStatus>) => void
+
+
+export interface NetworkStatus {
+    [key: string]: { in_kbps: number, out_kbps: number };
+}
